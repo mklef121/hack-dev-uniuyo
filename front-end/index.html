@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File upload</title>
+</head>
+
+<body>
+    <div>
+        <input type="file" name="file" id="file-holder">
+
+
+        <br />
+        <br />
+        <br />
+        <br />
+
+        <button id="file-button">
+            Upload file
+        </button>
+
+        <br>
+        <br>
+
+        <div id="display">
+
+        </div>
+    </div>
+
+
+    <script>
+        let input = document.getElementById('file-holder');
+        let button = document.getElementById('file-button');
+
+
+        button.addEventListener("click", (event) => {
+
+            if (input.files.length == 0) {
+                return
+            }
+            // event.preventDefault()
+            // return
+            let uploadFile = input.files[0];
+            let reader = new FileReader()
+
+            reader.addEventListener('loadend', async (e) => {
+                
+                //The array buffer containing the file in question
+                let readData = reader.result
+                
+                const CHUNK_SIZE = 10000;
+                
+                let times = Math.ceil(uploadFile.size / CHUNK_SIZE)
+
+                for (let index = 0; index < times; index++) {
+                    let beginning = index * CHUNK_SIZE
+                    let end  = (index +1) * CHUNK_SIZE
+                    let chunk = readData.slice(beginning, end)
+
+                    // console.log(chunk, "The chunk")
+
+                   await fetch("http://localhost:2023/upload", {
+                        method: "POST",
+                        body:chunk,
+                        headers:{
+                           "content-type": "application/octet-stream",
+                           "file-name": uploadFile.name
+                        }
+                    })
+                    
+                }
+
+            });
+
+            reader.readAsArrayBuffer(uploadFile)
+
+            
+        })
+    </script>
+</body>
+
+</html>
